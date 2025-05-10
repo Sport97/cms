@@ -1,2 +1,7 @@
-<cms-header></cms-header>
-<cms-contacts></cms-contacts>
+<cms-header (selectedFeatureEvent)="switchView($event)"></cms-header>
+<div class="container pull-left">
+  <h1 *ngIf="!selectedFeature">WeLearn CMS</h1>
+  <cms-documents *ngIf="selectedFeature === 'documents'"></cms-documents>
+  <cms-message-list *ngIf="selectedFeature === 'messages'"></cms-message-list>
+  <cms-contacts *ngIf="selectedFeature === 'contacts'"></cms-contacts>
+</div>

@@ -1,13 +1,13 @@
 <nav class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a href="#" class="navbar-brand">WeLearn CMS</a>
+      <a href="#" class="navbar-brand" (click)="onSelected('')">WeLearn CMS</a>
     </div>
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
-        <li><a href="#">Documents</a></li>
-        <li><a href="#">Messages</a></li>
-        <li><a href="#">Contacts</a></li>
+        <li><a href="#" (click)="onSelected('documents')">Documents</a></li>
+        <li><a href="#" (click)="onSelected('messages')">Messages</a></li>
+        <li><a href="#" (click)="onSelected('contacts')">Contacts</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li class="dropdown">
