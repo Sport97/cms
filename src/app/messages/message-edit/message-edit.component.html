@@ -11,6 +11,9 @@
           <input type="text" id="message" class="form-control" max="255" size="120" #msgText>
         </div>
       </div>
+      <div *ngIf="formError" class="alert alert-warning">
+        {{ formError }}
+      </div>
       <div class="row">
         <div class="col-xs-12">
           <button class="btn btn-success" type="submit" (click)="onSendMessage()">Send</button>
