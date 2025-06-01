@@ -1,4 +1,4 @@
-<a href="#" class="list-group-item clearfix" (click)="onSelected()">
+<a [routerLink]="[contact.id]" routerLinkActive="active" class="list-group-item clearfix" (click)="onSelected()">
   <span class="pull-left">
     {{ contact.name }}
   </span>

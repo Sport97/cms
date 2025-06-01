@@ -1,4 +1,4 @@
-<div class="panel panel-default">
+<div *ngIf="contact" class="panel panel-default">
   <div class="panel-heading">
     <h3 class="panel-title">
       {{ contact.name }}
@@ -8,8 +8,8 @@
     <div class="row">
       <div class="col-xs-12">
         <img [src]="contact.imageUrl" alt="{{ contact.name }}" class="img-responsive pull-left" style="max-height: 100px;">
-        <button class="btn btn-danger pull-right">Delete</button>
-        <button class="btn btn-primary pull-right">Edit</button>
+        <button class="btn btn-danger pull-right" (click)="onDelete()">Delete</button>
+        <button class="btn btn-primary pull-right" [routerLink]="['edit']">Edit</button>
       </div>
       <div class="col-xs-12">
         <hr>
