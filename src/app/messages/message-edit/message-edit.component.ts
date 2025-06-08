@@ -1,10 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Message } from '../message.model';
 import { MessageService } from '../message.service';
 

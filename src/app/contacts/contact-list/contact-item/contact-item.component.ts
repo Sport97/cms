@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, Output } from '@angular/core';
 import { Contact } from '../../contact.model';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'cms-contact-item',
@@ -9,10 +10,10 @@ import { Contact } from '../../contact.model';
 })
 export class ContactItemComponent {
   @Input() contact!: Contact;
-  @Output() contactSelected = new EventEmitter<void>();
+  @Output() contactSelected = new Subject<void>();
   @Input() id!: string;
 
   onSelected() {
-    this.contactSelected.emit();
+    this.contactSelected.next();
   }
 }
