@@ -53,6 +53,9 @@
       </div>
       <div class="row" *ngIf="(name.invalid && name.touched) || (email.invalid && email.touched)" class="alert alert-danger">The Name and Email fields are required.
       </div>
+      <div class="row" *ngIf="invalidGroupContact" class="alert alert-danger">
+        Contact cannot be added to group. It is already in the group or is the current contact.
+      </div>
 
 
       <div class="row">
