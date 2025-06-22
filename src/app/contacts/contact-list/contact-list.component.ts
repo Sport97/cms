@@ -13,16 +13,21 @@ import { Subscription } from 'rxjs';
 export class ContactListComponent implements OnInit, OnDestroy {
   contacts: Contact[] = [];
   private conSubscription!: Subscription;
+  term: string = '';
 
   constructor(private contactService: ContactService) {}
 
   ngOnInit(): void {
-    this.contacts = this.contactService.getContacts();
     this.conSubscription = this.contactService.contactChangedEvent.subscribe(
       (contacts: Contact[]) => {
         this.contacts = contacts;
       }
     );
+    this.contactService.getContacts();
+  }
+
+  search(value: string) {
+    this.term = value;
   }
 
   onSelectedContact(contact: Contact) {
