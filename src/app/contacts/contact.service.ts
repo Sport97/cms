@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Contact } from './contact.model';
-import { MOCKCONTACTS } from './MOCKCONTACTS';
 import { Subject } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
@@ -8,51 +7,48 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
   providedIn: 'root',
 })
 export class ContactService {
+  sender(sender: any): Contact | null {
+    throw new Error('Method not implemented.');
+  }
   contacts: Contact[] = [];
   contactSelectedEvent = new Subject<Contact>();
   contactChangedEvent = new Subject<Contact[]>();
-  maxContactId: number;
+  maxContactId!: number;
 
   constructor(private http: HttpClient) {
-    // this.contacts = MOCKCONTACTS;
-    this.maxContactId = this.getMaxId();
+    this.getContacts();
   }
 
   getContacts() {
-    this.http
-      .get<Contact[]>(
-        'https://cms-db-8241f-default-rtdb.firebaseio.com/contacts.json'
-      )
-      .subscribe(
-        (contacts: Contact[]) => {
-          this.contacts = contacts ?? [];
-          this.maxContactId = this.getMaxId();
-          this.contacts.sort((a, b) => a.name.localeCompare(b.name));
-          this.contactChangedEvent.next(this.contacts.slice());
-        },
-        (error: any) => {
-          console.error('Error fetching contacts:', error);
-        }
-      );
+    this.http.get<Contact[]>('http://localhost:3000/contacts').subscribe(
+      (contacts: Contact[]) => {
+        this.contacts = contacts ?? [];
+        this.maxContactId = this.getMaxId();
+        this.contacts.sort((a, b) => a.name.localeCompare(b.name));
+        this.contactChangedEvent.next(this.contacts.slice());
+      },
+      (error: any) => {
+        console.error('Error fetching contacts:', error);
+      }
+    );
   }
 
   getContact(id: string): Contact | null {
-    for (let contact of this.contacts) {
-      if (contact.id === id) {
-        return contact;
-      }
-    }
-    return null;
+    return this.contacts.find((contact) => contact.id === id) || null;
   }
 
   deleteContact(contact: Contact) {
     if (!contact) return;
 
-    const pos = this.contacts.indexOf(contact);
+    const pos = this.contacts.findIndex((c) => c.id === contact.id);
     if (pos < 0) return;
 
-    this.contacts.splice(pos, 1);
-    this.storeContacts();
+    this.http
+      .delete('http://localhost:3000/contacts/' + contact.id)
+      .subscribe(() => {
+        this.contacts.splice(pos, 1);
+        this.contactChangedEvent.next(this.contacts.slice());
+      });
   }
 
   getMaxId(): number {
@@ -69,34 +65,37 @@ export class ContactService {
   addContact(newContact: Contact) {
     if (!newContact) return;
 
-    this.maxContactId++;
-    newContact.id = this.maxContactId.toString();
-    this.contacts.push(newContact);
-    this.storeContacts();
+    newContact.id = '';
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+
+    this.http
+      .post<{ message: string; contact: Contact }>(
+        'http://localhost:3000/contacts',
+        newContact,
+        { headers: headers }
+      )
+      .subscribe((responseData) => {
+        this.contacts.push(responseData.contact);
+        this.contactChangedEvent.next(this.contacts.slice());
+      });
   }
 
   updateContact(originalContact: Contact, newContact: Contact) {
     if (!originalContact || !newContact) return;
 
-    const pos = this.contacts.indexOf(originalContact);
+    const pos = this.contacts.findIndex((c) => c.id === originalContact.id);
     if (pos < 0) return;
 
     newContact.id = originalContact.id;
-    this.contacts[pos] = newContact;
-    this.storeContacts();
-  }
 
-  storeContacts() {
-    const contactsString = JSON.stringify(this.contacts);
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
     this.http
-      .put(
-        'https://cms-db-8241f-default-rtdb.firebaseio.com/contacts.json',
-        contactsString,
-        { headers: headers }
-      )
+      .put('http://localhost:3000/contacts/' + originalContact.id, newContact, {
+        headers: headers,
+      })
       .subscribe(() => {
+        this.contacts[pos] = newContact;
         this.contactChangedEvent.next(this.contacts.slice());
       });
   }

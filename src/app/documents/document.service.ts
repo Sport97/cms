@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Document } from './document.model';
-import { MOCKDOCUMENTS } from './MOCKDOCUMENTS';
 import { Subject } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
@@ -11,28 +10,20 @@ export class DocumentService {
   documents: Document[] = [];
   documentSelectedEvent = new Subject<Document>();
   documentChangedEvent = new Subject<Document[]>();
-  maxDocumentId: number;
+  maxDocumentId!: number;
 
-  constructor(private http: HttpClient) {
-    // this.documents = MOCKDOCUMENTS;
-    this.maxDocumentId = this.getMaxId();
-  }
+  constructor(private http: HttpClient) {}
 
   getDocuments() {
     this.http
-      .get<Document[]>(
-        'https://cms-db-8241f-default-rtdb.firebaseio.com/documents.json'
+      .get<{ message: string; documents: Document[] }>(
+        'http://localhost:3000/documents'
       )
       .subscribe(
-        (documents: Document[]) => {
-          this.documents = documents;
+        (responseData) => {
+          this.documents = responseData.documents;
           this.maxDocumentId = this.getMaxId();
-          this.documents.sort((a, b) => {
-            if (a.name < b.name) return -1;
-            if (a.name > b.name) return 1;
-            return 0;
-          });
-          this.documentChangedEvent.next(this.documents.slice());
+          this.sortAndSend();
         },
         (error: any) => {
           console.error('Error fetching documents:', error);
@@ -44,14 +35,59 @@ export class DocumentService {
     return this.documents.find((doc) => doc.id === id) || null;
   }
 
+  addDocument(document: Document) {
+    if (!document) return;
+
+    document.id = '';
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+
+    this.http
+      .post<{ message: string; document: Document }>(
+        'http://localhost:3000/documents',
+        document,
+        { headers: headers }
+      )
+      .subscribe((responseData) => {
+        this.documents.push(responseData.document);
+        this.sortAndSend();
+      });
+  }
+
+  updateDocument(originalDocument: Document, newDocument: Document) {
+    if (!originalDocument || !newDocument) return;
+
+    const pos = this.documents.findIndex((d) => d.id === originalDocument.id);
+    if (pos < 0) return;
+
+    newDocument.id = originalDocument.id;
+    newDocument._id = originalDocument._id;
+
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+
+    this.http
+      .put(
+        'http://localhost:3000/documents/' + originalDocument.id,
+        newDocument,
+        { headers: headers }
+      )
+      .subscribe(() => {
+        this.documents[pos] = newDocument;
+        this.sortAndSend();
+      });
+  }
+
   deleteDocument(document: Document) {
     if (!document) return;
 
-    const pos = this.documents.indexOf(document);
+    const pos = this.documents.findIndex((d) => d.id === document.id);
     if (pos < 0) return;
 
-    this.documents.splice(pos, 1);
-    this.storeDocuments();
+    this.http
+      .delete('http://localhost:3000/documents/' + document.id)
+      .subscribe(() => {
+        this.documents.splice(pos, 1);
+        this.sortAndSend();
+      });
   }
 
   getMaxId(): number {
@@ -65,38 +101,8 @@ export class DocumentService {
     return maxId;
   }
 
-  addDocument(newDocument: Document) {
-    if (!newDocument) return;
-
-    this.maxDocumentId++;
-    newDocument.id = this.maxDocumentId.toString();
-    this.documents.push(newDocument);
-    this.storeDocuments();
-  }
-
-  updateDocument(originalDocument: Document, newDocument: Document) {
-    if (!originalDocument || !newDocument) return;
-
-    const pos = this.documents.indexOf(originalDocument);
-    if (pos < 0) return;
-
-    newDocument.id = originalDocument.id;
-    this.documents[pos] = newDocument;
-    this.storeDocuments();
-  }
-
-  storeDocuments() {
-    const documentsString = JSON.stringify(this.documents);
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-
-    this.http
-      .put(
-        'https://cms-db-8241f-default-rtdb.firebaseio.com/documents.json',
-        documentsString,
-        { headers: headers }
-      )
-      .subscribe(() => {
-        this.documentChangedEvent.next(this.documents.slice());
-      });
+  private sortAndSend() {
+    this.documents.sort((a, b) => a.name.localeCompare(b.name));
+    this.documentChangedEvent.next(this.documents.slice());
   }
 }
