@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Message } from '../message.model';
 import { MessageService } from '../message.service';
+import { Contact } from '../../contacts/contact.model';
 
 @Component({
   selector: 'cms-message-edit',
@@ -12,7 +13,6 @@ export class MessageEditComponent {
   @ViewChild('subject') subjectInputRef!: ElementRef;
   @ViewChild('msgText') msgTextInputRef!: ElementRef;
 
-  currentSender: string = 'Stephen';
   formError: string = '';
 
   constructor(private messageService: MessageService) {}
@@ -27,10 +27,10 @@ export class MessageEditComponent {
     }
 
     const newMessage = new Message(
-      'Port',
+      '',
       subject,
       msgText,
-      this.currentSender
+      '686f237642f343a213718de6'
     );
 
     this.messageService.addMessage(newMessage);

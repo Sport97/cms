@@ -11,7 +11,7 @@ const documentSchema = mongoose.Schema({
       name: { type: String },
       description: { type: String },
       url: { type: String },
-      children: [this], // optional recursive nesting
+      children: [this],
     },
   ],
 });

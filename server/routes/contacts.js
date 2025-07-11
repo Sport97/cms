@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-
 const sequenceGenerator = require("./sequenceGenerator");
 const Contact = require("../models/contact");
 
@@ -21,32 +20,30 @@ router.get("/", (req, res, next) => {
     });
 });
 
-router.post("/", (req, res, next) => {
-  const maxContactId = sequenceGenerator.nextId("contacts");
+router.post("/", async (req, res, next) => {
+  try {
+    const maxContactId = await sequenceGenerator.nextId("contacts");
 
-  const contact = new Contact({
-    id: maxContactId,
-    name: req.body.name,
-    email: req.body.email,
-    phone: req.body.phone,
-    imageUrl: req.body.imageUrl,
-    group: req.body.group,
-  });
-
-  contact
-    .save()
-    .then((createdContact) => {
-      res.status(201).json({
-        message: "Contact added successfully",
-        contact: createdContact,
-      });
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: "An error occurred while adding the contact.",
-        error: error,
-      });
+    const contact = new Contact({
+      id: maxContactId.toString(),
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+      imageUrl: req.body.imageUrl,
+      group: req.body.group,
     });
+
+    const createdContact = await contact.save();
+    res.status(201).json({
+      message: "Contact added successfully",
+      contact: createdContact,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred while adding the contact.",
+      error: error,
+    });
+  }
 });
 
 router.put("/:id", (req, res, next) => {
